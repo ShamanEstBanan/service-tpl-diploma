@@ -1,0 +1,161 @@
+run:
+  timeout: 5m
+  tests: true
+  skip-files:
+    - "_*mock.go"
+  skip-dirs:
+    - internal/generated
+    - /mock
+
+linters:
+  disable:
+    - structcheck
+    - unused
+    - gochecknoglobals
+    - ireturn
+  enable:
+    - revive
+    - asciicheck
+    - containedctx
+    - decorder
+    - depguard
+    - dogsled
+    - dupl
+    - durationcheck
+    - errchkjson
+    - errorlint
+    - exportloopref
+    - forcetypeassert
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - gofumpt
+    - goimports
+    - goprintffuncname
+    - gosec
+    - grouper
+    - lll
+    - makezero
+    - misspell
+    - megacheck
+    - nakedret
+    - nestif
+    - nolintlint
+    - prealloc
+    - predeclared
+    - unconvert
+    - whitespace
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    govet:
+      enable:
+        - fieldalignment
+  lll:
+    line-length: 130
+    tab-width: 1
+  errorlint:
+    errorf: true
+    asserts: true
+    comparison: true
+  gosec:
+    excludes:
+      - G307
+      - G304
+  revive:
+    rules:
+      - name: context-keys-type
+      - name: time-equal
+      - name: time-naming
+      - name: var-declaration
+      - name: unexported-return
+        disabled: true
+      - name: errorf
+      - name: blank-imports
+      - name: context-as-argument
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+        disabled: true
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming # Деактивирован для возможности названия пакета в snake_case
+        disabled: true
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: indent-error-flow
+      - name: empty-block
+      - name: superfluous-else
+      - name: confusing-naming
+        disabled: true
+      - name: get-return
+      - name: modifies-parameter
+      - name: confusing-results
+      - name: deep-exit
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: flag-parameter
+        disabled: true
+      - name: unnecessary-stmt
+      - name: struct-tag
+      - name: modifies-value-receiver
+      - name: constant-logical-expr
+      - name: bool-literal-in-expr
+      - name: redefines-builtin-id
+      - name: range-val-in-closure
+      - name: range-val-address
+      - name: waitgroup-by-value
+      - name: atomic
+      - name: empty-lines
+      - name: call-to-gc
+      - name: duplicated-imports
+      - name: import-shadowing
+        disabled: true
+      - name: bare-return
+      - name: unused-receiver
+      - name: string-of-int
+      - name: early-return
+        disabled: true
+      - name: unconditional-recursion
+      - name: identical-branches
+      - name: defer
+        arguments: [ [ "call-chain","loop","method-call","recover", "return" ] ]
+      - name: unexported-naming
+      - name: nested-structs
+      - name: useless-break
+      - name: optimize-operands-order
+
+issues:
+  # don't skip warning about doc comments
+  exclude-use-default: false
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    - linters: [ errcheck ]
+      text: "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*printf?|os\\.(Un)?Setenv). is not checked"
+    - linters: [ revive ]
+      text: "should have a package comment, unless it's in another file for this package"
+    - path: internal/rpc_old/
+      linters:
+        - dupl
+    - path: internal/postgres/
+      linters:
+        - dupl
+    - path: _test.go
+      linters:
+        - dupl
+        - gocritic
+        - goconst
+        - containedctx
+        - nestif
+        - lll
+    - linters:
+        - lll
+      source: "^//go:generate "
