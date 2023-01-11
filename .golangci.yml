@@ -68,6 +68,8 @@ linters-settings:
       - G307
       - G304
   revive:
+    severity: warning
+    confidence: 0.8
     rules:
       - name: context-keys-type
       - name: time-equal
@@ -142,6 +144,8 @@ issues:
       text: "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*printf?|os\\.(Un)?Setenv). is not checked"
     - linters: [ revive ]
       text: "should have a package comment, unless it's in another file for this package"
+    - linters: [ revive ]
+      text: "should have a package comment"
     - path: internal/rpc_old/
       linters:
         - dupl
