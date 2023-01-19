@@ -15,6 +15,7 @@ import (
 	"service-tpl-diploma/internal/handler"
 	"service-tpl-diploma/internal/router"
 	"service-tpl-diploma/internal/storage"
+	"service-tpl-diploma/internal/usecase"
 	"service-tpl-diploma/pkg/logger"
 	"syscall"
 	"time"
@@ -32,9 +33,10 @@ type App struct {
 // listen OS signals to gracefully shutdown server
 func listen(ctx context.Context) error {
 	srv := http.Server{
-		Addr:        ":8080",
-		Handler:     nil,
-		BaseContext: func(net.Listener) context.Context { return ctx },
+		Addr:              ":8181",
+		Handler:           nil,
+		BaseContext:       func(net.Listener) context.Context { return ctx },
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -64,14 +66,14 @@ func New() (*App, error) {
 		return nil, err
 	}
 
-	//Init migrations
+	// Init migrations
 	if err := migrate.Run(cfg.PostgresDSN, migrate.WithPath(migrationsPath)); err != nil {
-		log.Fatalf("failed executing migrate DB: %v\n", err)
+		log.Fatalf("failed executing migrate DB: %v\n", err) //nolint: revive
 	}
 
 	ctx := context.Background()
 
-	//initiate storage
+	//init storage
 	pool, err := pgxpool.New(ctx, cfg.PostgresDSN)
 	if err != nil {
 		lg.Error(err.Error())
@@ -79,13 +81,16 @@ func New() (*App, error) {
 	}
 	st := storage.New(pool, lg)
 
-	h := handler.New(lg, st)
+	//init service
+	usecases := usecase.New(lg, st)
+	//init server
+	h := handler.New(lg, usecases)
 	r := router.New(h)
 	server := &http.Server{
-		Addr:    cfg.RunAddress,
-		Handler: r,
+		Addr:              cfg.RunAddress,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
-
 	return &App{
 		logger:     lg,
 		HTTPServer: server,
@@ -94,7 +99,6 @@ func New() (*App, error) {
 
 // Run starts our server
 func (app *App) Run() error {
-
 	// gracefully shutdown
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -102,12 +106,10 @@ func (app *App) Run() error {
 		syscall.SIGTERM,
 	)
 	defer cancel()
-
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		return listen(ctx)
 	})
-
 	app.logger.Info("server started", zap.String("addr", app.HTTPServer.Addr))
 	return app.HTTPServer.ListenAndServe()
 }

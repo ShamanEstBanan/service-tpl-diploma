@@ -2,8 +2,9 @@ package config
 
 import (
 	"flag"
-	"github.com/caarlos0/env"
 	"log"
+
+	"github.com/caarlos0/env"
 )
 
 type Config struct {
@@ -15,7 +16,7 @@ type Config struct {
 func New() *Config {
 	cfg := Config{}
 
-	//заполнение конфига из значений аргументов командной строки
+	// заполнение конфига из значений аргументов командной строки
 	flag.StringVar(
 		&cfg.RunAddress,
 		"a",
@@ -36,7 +37,7 @@ func New() *Config {
 	)
 	flag.Parse()
 
-	//переопределяем значения конфига переменными ENV, eсли они определены в ОС
+	// переопределяем значения конфига переменными ENV, eсли они определены в ОС
 	if err := env.Parse(&cfg); err != nil {
 		log.Printf("err while parsing env-values: %v\n", err)
 	}

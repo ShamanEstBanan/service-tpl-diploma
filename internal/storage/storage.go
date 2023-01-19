@@ -5,13 +5,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type Storage struct {
+type storage struct {
 	db *pgxpool.Pool
 	lg *zap.Logger
 }
 
-func New(db *pgxpool.Pool, lg *zap.Logger) *Storage {
-	return &Storage{
+func New(db *pgxpool.Pool, lg *zap.Logger) *storage {
+	return &storage{
 		db: db,
 		lg: lg,
 	}

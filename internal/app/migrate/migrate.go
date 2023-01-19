@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib" //nolint: revive
 	"github.com/pressly/goose/v3"
 )
 
@@ -38,18 +38,15 @@ func Run(dsn string, opts ...OptionsFunc) error {
 	for _, opt := range opts {
 		opt(o)
 	}
-
 	curDriverName := "pgx"
 	if o.driverName != "" {
 		curDriverName = o.driverName
 	}
-
 	sqlDB, err := sql.Open(curDriverName, dsn)
 	if err != nil {
 		return fmt.Errorf("open database connection error: %w ", err)
 	}
 	defer func() { _ = sqlDB.Close() }()
-
 	curPath := "/Users/yunbaranik/go/src/service-tpl-diploma/internal/app/migrate/migrations/"
 	if o.path != "" {
 		curPath = o.path
@@ -58,5 +55,4 @@ func Run(dsn string, opts ...OptionsFunc) error {
 		return fmt.Errorf("up migrations: %w", err)
 	}
 	return nil
-
 }
