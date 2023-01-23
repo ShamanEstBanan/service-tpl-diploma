@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"context"
-	"service-tpl-diploma/internal/app/domain"
+	"service-tpl-diploma/internal/domain"
 
 	"go.uber.org/zap"
 )
@@ -10,6 +10,7 @@ import (
 type storage interface {
 	CreateUser(ctx context.Context, user domain.NewUser) error
 	CheckUser(ctx context.Context, user domain.AuthUser) (exist string, err error)
+	LoadOrder(ctx context.Context, orderID int, userID string) (err error)
 }
 
 type service struct {

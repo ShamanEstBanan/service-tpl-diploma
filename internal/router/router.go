@@ -8,23 +8,26 @@ import (
 
 func New(h *handler.Handler) chi.Router {
 	r := chi.NewRouter()
-	r.Use(middleware.AllowContentType("application/json"))
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Route("/api/user/", func(r chi.Router) {
-		r.Post("/register", h.RegistrationUser) //Content-Type: application/json
-		r.Post("/login", h.AuthUser)            // Content-Type: application/json
+		r.Use(middleware.AllowContentType("application/json"))
+		r.Post("/register", h.RegistrationUser)
+		r.Post("/login", h.AuthUser)
 	})
-	r.Route("/api/user/", func(r chi.Router) {
+	r.Route("/api/", func(r chi.Router) {
 		r.Use(Auth)
-		r.Post("/orders", h.RegistrationUser)           //Content-Type: text/plain
-		r.Get("/orders", h.RegistrationUser)            //-
-		r.Get("/balance", h.RegistrationUser)           // -
-		r.Post("/balance/withdraw", h.RegistrationUser) //Content-Type: application/json
-		r.Get("/withdrawals", h.RegistrationUser)       // -
+
+		r.Get("/user/balance", h.RegistrationUser)
+		r.Post("/user/balance/withdraw", h.RegistrationUser)
+		r.Get("/user/withdrawals", h.RegistrationUser)
 	})
-	r.Route("/test", func(r chi.Router) {
+	r.Route("/api/user/orders", func(r chi.Router) {
 		r.Use(Auth)
+		r.Use(middleware.AllowContentType("text/plain"))
+		r.Post("/", h.LoadOrder)
+		r.Get("/", h.RegistrationUser)
+
 		r.Get("/test", h.Test)
 	})
 	return r

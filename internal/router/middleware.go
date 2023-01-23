@@ -1,8 +1,10 @@
 package router
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"service-tpl-diploma/internal/errs"
 	"service-tpl-diploma/internal/usecase"
 	"strings"
 )
@@ -30,8 +32,13 @@ func Auth(next http.Handler) http.Handler {
 			return
 		}
 		userID, err := usecase.ParseToken(headerParts[1], []byte(signingKey))
-		if err != nil {
+		if errors.Is(err, errs.ErrInvalidAccessToken) {
 			http.Error(w, "not authorized", http.StatusUnauthorized)
+			log.Printf("invalid token: %s", headerParts)
+			return
+		}
+		if err != nil {
+			http.Error(w, "", http.StatusInternalServerError)
 			log.Printf("invalid token: %s", headerParts)
 			return
 		}

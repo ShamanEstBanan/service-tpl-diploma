@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"net/http"
-	"service-tpl-diploma/internal/app/domain"
+	"service-tpl-diploma/internal/domain"
 )
 
 type service interface {
 	CreateUser(ctx context.Context, user domain.NewUser) error
 	AuthUser(ctx context.Context, User domain.AuthUser) (string, error)
+	LoadOrder(ctx context.Context, orderId int, userId string) error
 }
 type Handler struct {
 	lg      *zap.Logger

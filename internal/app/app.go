@@ -61,7 +61,7 @@ func listen(ctx context.Context) error {
 func New() (*App, error) {
 	cfg := config.New()
 
-	lg, err := logger.New(false)
+	lg, err := logger.New(true)
 	if err != nil {
 		return nil, err
 	}

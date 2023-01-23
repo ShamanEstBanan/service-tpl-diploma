@@ -3,13 +3,26 @@ package storage
 import (
 	"context"
 	"fmt"
-	"service-tpl-diploma/internal/app/domain"
+	"service-tpl-diploma/internal/domain"
 )
 
 func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) error {
-	query := "INSERT INTO users (login,password) VALUES($1,crypt($2,gen_salt('bf',8)))"
+	var userId string
 
+	// TODO: Сделать через транзакции
+	query := "INSERT INTO users (login,password) VALUES($1,crypt($2,gen_salt('bf',8)))"
 	_, err := s.db.Exec(ctx, query, user.Login, user.Password)
+	if err != nil {
+		return err
+	}
+	query = fmt.Sprintf("SELECT id FROM users WHERE login ='%s'", user.Login)
+	err = s.db.QueryRow(ctx, query).Scan(&userId)
+	if err != nil {
+		return err
+	}
+
+	query = "INSERT INTO accounts (id) VALUES($1)"
+	_, err = s.db.Exec(ctx, query, userId)
 	if err != nil {
 		return err
 	}

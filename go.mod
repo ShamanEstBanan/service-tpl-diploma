@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.0
 	github.com/jackc/pgx/v5 v5.2.0
 	github.com/pressly/goose/v3 v3.7.0
+	github.com/shopspring/decimal v1.3.1
 	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.1.0
 )

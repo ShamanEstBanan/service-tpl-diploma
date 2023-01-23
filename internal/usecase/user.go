@@ -2,23 +2,19 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go/v4"
 	"log"
-	"service-tpl-diploma/internal/app/domain"
+	"service-tpl-diploma/internal/domain"
+	"service-tpl-diploma/internal/errs"
 	"time"
-)
-
-var (
-	ErrInvalidAccessToken = errors.New("invalid auth token")
 )
 
 func (s *service) CreateUser(ctx context.Context, user domain.NewUser) error {
 	if user.Login == "" {
-		return errors.New("login is empty")
+		return errs.ErrLoginIsEmpty
 	} else if user.Password == "" {
-		return errors.New("password is empty")
+		return errs.ErrPasswordIsEmpty
 	}
 	err := s.storage.CreateUser(ctx, user)
 	if err != nil {
@@ -30,9 +26,9 @@ func (s *service) CreateUser(ctx context.Context, user domain.NewUser) error {
 
 func (s *service) AuthUser(ctx context.Context, user domain.AuthUser) (authToken string, err error) {
 	if user.Login == "" {
-		return "", errors.New("login is empty")
+		return "", errs.ErrLoginIsEmpty
 	} else if user.Password == "" {
-		return "", errors.New("password is empty")
+		return "", errs.ErrPasswordIsEmpty
 	}
 	userId, err := s.storage.CheckUser(ctx, user)
 	if err != nil {
@@ -40,7 +36,7 @@ func (s *service) AuthUser(ctx context.Context, user domain.AuthUser) (authToken
 		return "", err
 	}
 	if userId == "" {
-		return "", errors.New("login or password is invalid")
+		return "", errs.ErrInvalidLoginOrPassword
 	}
 	token, err := generateToken(userId)
 	if err != nil {
@@ -88,5 +84,5 @@ func ParseToken(accessToken string, signingKey []byte) (string, error) {
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims.Username, nil
 	}
-	return "", ErrInvalidAccessToken
+	return "", errs.ErrInvalidAccessToken
 }
