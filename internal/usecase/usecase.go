@@ -16,6 +16,7 @@ type storage interface {
 type service struct {
 	lg      *zap.Logger
 	storage storage
+	jobs    chan domain.Job
 }
 
 func New(logger *zap.Logger, storage storage) *service {

@@ -12,10 +12,12 @@ import (
 	"os/signal"
 	"service-tpl-diploma/internal/app/migrate"
 	"service-tpl-diploma/internal/config"
+	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/handler"
 	"service-tpl-diploma/internal/router"
 	"service-tpl-diploma/internal/storage"
 	"service-tpl-diploma/internal/usecase"
+	"service-tpl-diploma/internal/workers"
 	"service-tpl-diploma/pkg/logger"
 	"syscall"
 	"time"
@@ -70,7 +72,6 @@ func New() (*App, error) {
 	if err := migrate.Run(cfg.PostgresDSN, migrate.WithPath(migrationsPath)); err != nil {
 		log.Fatalf("failed executing migrate DB: %v\n", err) //nolint: revive
 	}
-
 	ctx := context.Background()
 
 	//init storage
@@ -80,6 +81,22 @@ func New() (*App, error) {
 		return nil, err
 	}
 	st := storage.New(pool, lg)
+
+	// workerpool
+	// TODO вынести в конфиг значения
+	jobCount := 50
+	concurrency := 10
+	jobsCh := make(chan domain.Job, jobCount)
+	go func() {
+		err = workers.RunPool(context.Background(), concurrency, jobsCh)
+		if err != nil {
+			log.Fatal("FATAL ERROR while start worker-pool", err)
+		}
+	}()
+
+	// init worker updater
+	w := workers.NewStatusUpdater(st, jobsCh, lg, cfg.AccrualSystemAddres)
+	w.Start()
 
 	//init service
 	usecases := usecase.New(lg, st)

@@ -1,5 +1,7 @@
 package domain
 
+import "context"
+
 type NewUser struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
@@ -14,5 +16,9 @@ const (
 	OrderStatusNEW        = "NEW"
 	OrderStatusPROCESSING = "PROCESSING"
 	OrderStatusINVALID    = "INVALID"
-	OrderStatusPROCESSED  = "PROCESSING"
+	OrderStatusPROCESSED  = "PROCESSED"
 )
+
+type Job interface {
+	Run(ctx context.Context) error
+}
