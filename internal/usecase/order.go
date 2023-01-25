@@ -2,18 +2,19 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"service-tpl-diploma/internal/errs"
+	"strconv"
 )
 
-func (s *service) LoadOrder(ctx context.Context, orderId int, userId string) error {
-	fmt.Println(ctx, orderId, userId)
-	validNum := LunaValidation(orderId)
+func (s *service) LoadOrder(ctx context.Context, orderID int, userId string) error {
+	validNum := LunaValidation(orderID)
 	if !validNum {
 		s.lg.Error(errs.ErrInvalidOrderID.Error())
 		return errs.ErrInvalidOrderID
 	}
-	err := s.storage.LoadOrder(ctx, orderId, userId)
+	oi := int64(orderID)
+	strOrderID := strconv.FormatInt(oi, 10)
+	err := s.storage.LoadOrder(ctx, strOrderID, userId)
 	if err != nil {
 		s.lg.Error(err.Error())
 		return err

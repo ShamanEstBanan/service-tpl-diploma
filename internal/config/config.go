@@ -8,9 +8,9 @@ import (
 )
 
 type Config struct {
-	RunAddress          string `env:"RUN_ADDRESS"`
-	PostgresDSN         string `env:"DATABASE_URI"`
-	AccrualSystemAddres string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	RunAddress           string `env:"RUN_ADDRESS"`
+	PostgresDSN          string `env:"DATABASE_URI"`
+	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 }
 
 func New() *Config {
@@ -30,9 +30,9 @@ func New() *Config {
 		"адрес подключения к базе данных, дефолтного значения нет",
 	)
 	flag.StringVar(
-		&cfg.AccrualSystemAddres,
+		&cfg.AccrualSystemAddress,
 		"r",
-		"",
+		"http://localhost:8181",
 		"адрес системы расчёта начислений",
 	)
 	flag.Parse()

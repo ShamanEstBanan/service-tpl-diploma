@@ -2,7 +2,7 @@ package workers
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -12,11 +12,16 @@ import (
 	"time"
 )
 
+type storage interface {
+	GetOrdersForProcessing(ctx context.Context) ([]string, error)
+	UpdateOrder(ctx context.Context, orderID string, status string, accrual decimal.Decimal) error
+}
+
 type updateOrderStatusJob struct {
 	orderID              string
-	client               *http.Client
 	accrualSystemAddress string
 	st                   storage
+	lg                   *zap.Logger
 }
 
 func (j *updateOrderStatusJob) Run(ctx context.Context) error {
@@ -24,28 +29,40 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 
 	//тут юзкейс похода в сервис чужой
 	//получаем данные по orderID
-	request, err := http.NewRequest(http.MethodGet, j.accrualSystemAddress, nil)
+	url := fmt.Sprintf("%s/api/orders/%s", j.accrualSystemAddress, j.orderID)
+
+	response, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)
-		return err
-	}
-	response, err := j.client.Do(request)
-	if err != nil {
-		fmt.Println(err)
-		return err
+		return nil
 	}
 	if response.StatusCode != http.StatusOK {
 		respMessage := fmt.Sprintf("Responce:\nCode %v\n Message:%v", response.StatusCode, response.Body)
-		return errors.New(respMessage)
+		log.Println(respMessage)
+		return nil
 	}
-	// обновляем значение в БД если статус INVALID или PROCESSED
-	err = j.st.UpdateOrder(ctx, 0, "", "", decimal.New(0, 0))
-	return nil
-}
+	orderInfo := domain.AccrualServiceResponse{}
+	err = json.NewDecoder(response.Body).Decode(&orderInfo)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
 
-type storage interface {
-	GetOrdersForProcessing(ctx context.Context) ([]string, error)
-	UpdateOrder(ctx context.Context, orderID int, userID string, status string, accural decimal.Decimal) error
+	//acc := decimal.New(500, 0)
+	//orderInfo := domain.AccrualServiceResponse{
+	//	OrderId: j.orderID,
+	//	Status:  domain.OrderAccrualStatusPROCESSED,
+	//	Accrual: acc,
+	//}
+	// обновляем значение в БД если статус INVALID или PROCESSED
+	if orderInfo.Status == domain.OrderAccrualStatusINVALID || orderInfo.Status == domain.OrderAccrualStatusPROCESSED {
+		err = j.st.UpdateOrder(ctx, orderInfo.OrderId, orderInfo.Status, orderInfo.Accrual)
+		if err != nil {
+			j.lg.Error("err while update status", zap.Error(err))
+		}
+	}
+
+	return nil
 }
 
 type StatusUpdater struct {
@@ -65,7 +82,6 @@ func NewStatusUpdater(st storage, jobCh chan domain.Job, lg *zap.Logger, accrual
 }
 
 func (s *StatusUpdater) Start() {
-	client := NewClient()
 	go func() {
 		for {
 			orders, err := s.storage.GetOrdersForProcessing(context.Background())
@@ -75,17 +91,14 @@ func (s *StatusUpdater) Start() {
 			for _, order := range orders {
 				s.jobsCh <- &updateOrderStatusJob{
 					orderID:              order,
-					client:               client,
 					accrualSystemAddress: s.accrualSystemAddress,
+					st:                   s.storage,
+					lg:                   s.lg,
 				}
 			}
 			log.Println("Array of orders for processing: ", orders)
 
-			time.Sleep(2 * time.Second)
+			time.Sleep(1 * time.Minute)
 		}
 	}()
-}
-
-func NewClient() *http.Client {
-	return &http.Client{Timeout: 10 * time.Second}
 }

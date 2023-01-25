@@ -95,7 +95,7 @@ func New() (*App, error) {
 	}()
 
 	// init worker updater
-	w := workers.NewStatusUpdater(st, jobsCh, lg, cfg.AccrualSystemAddres)
+	w := workers.NewStatusUpdater(st, jobsCh, lg, cfg.AccrualSystemAddress)
 	w.Start()
 
 	//init service

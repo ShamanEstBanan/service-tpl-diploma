@@ -6,12 +6,13 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/shopspring/decimal"
+	"log"
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
 	"time"
 )
 
-func (s *storage) LoadOrder(ctx context.Context, orderID int, userID string) error {
+func (s *storage) LoadOrder(ctx context.Context, orderID string, userID string) error {
 	ctxCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -37,12 +38,20 @@ func (s *storage) LoadOrder(ctx context.Context, orderID int, userID string) err
 	return nil
 }
 
-func (s *storage) UpdateOrder(ctx context.Context, orderID int, userID string, status string, accural decimal.Decimal) error {
+func (s *storage) UpdateOrder(ctx context.Context, orderID string, status string, accrual decimal.Decimal) error {
 	ctxCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	query := "INSERT INTO orders (id, accountID) VALUES($1, $2)"
-	_, err := s.db.Exec(ctxCancel, query, orderID, userID)
+	fmt.Printf("orderId :%s\n, status:%s\n, accrual:%v\n", orderID, status, accrual)
+
+	q := fmt.Sprintf(
+		"UPDATE orders "+
+			"SET status = '%s', accrual = '%v', uploaded_at = now() "+
+			"WHERE id LIKE '%s'", status, accrual, orderID)
+
+	//query := "INSERT INTO orders (id, account_id, status, accrual) VALUES($1, $2, $3, $4)"
+	_, err := s.db.Exec(ctxCancel, q)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	return nil
@@ -65,7 +74,8 @@ func (s *storage) GetOrdersForProcessing(ctx context.Context) ([]string, error) 
 	var orders []string
 	var orderId string
 	query := fmt.Sprintf(
-		"SELECT id FROM orders WHERE status IN ('%s', '%s')", domain.OrderStatusNEW, domain.OrderStatusPROCESSING,
+		"SELECT id FROM orders WHERE status IN ('%s', '%s')",
+		domain.OrderInternalStatusNEW, domain.OrderInternalStatusPROCESSING,
 	)
 	rows, err := s.db.Query(ctxCancel, query)
 	if err != nil {

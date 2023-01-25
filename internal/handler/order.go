@@ -39,7 +39,7 @@ func (h *Handler) LoadOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Error(w, err.Error(), http.StatusAccepted)
+	w.WriteHeader(http.StatusAccepted)
 	_, err = w.Write([]byte("Order successful loaded to system"))
 	if err != nil {
 		h.lg.Error(err.Error())
