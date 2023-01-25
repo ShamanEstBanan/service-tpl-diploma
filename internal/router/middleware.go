@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// TODO убрать в env
 const signingKey = "your_signing_key"
 
 func Auth(next http.Handler) http.Handler {

@@ -42,12 +42,11 @@ func (s *service) AuthUser(ctx context.Context, user domain.AuthUser) (authToken
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(token)
 
 	return token, nil
 }
 
-// const hashSalt = "vsohAFzfiyAPFadu24n"
+// TODO убрать в env
 const signingKey = "your_signing_key"
 
 type Claims struct {

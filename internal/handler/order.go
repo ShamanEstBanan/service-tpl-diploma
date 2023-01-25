@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -47,9 +48,13 @@ func (h *Handler) LoadOrder(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
-	h.lg.Sugar().Info("INFO:", r.Host+r.URL.Path)
-	_, err := w.Write([]byte("Success"))
+func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("userID")
+
+	orders, err := h.service.GetUserOrders(r.Context(), userID)
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(orders)
 	if err != nil {
 		h.lg.Error(err.Error())
 		return

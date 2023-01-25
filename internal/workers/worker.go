@@ -47,13 +47,6 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 		log.Println(err)
 		return nil
 	}
-
-	//acc := decimal.New(500, 0)
-	//orderInfo := domain.AccrualServiceResponse{
-	//	OrderId: j.orderID,
-	//	Status:  domain.OrderAccrualStatusPROCESSED,
-	//	Accrual: acc,
-	//}
 	// обновляем значение в БД если статус INVALID или PROCESSED
 	if orderInfo.Status == domain.OrderAccrualStatusINVALID || orderInfo.Status == domain.OrderAccrualStatusPROCESSED {
 		err = j.st.UpdateOrder(ctx, orderInfo.OrderId, orderInfo.Status, orderInfo.Accrual)

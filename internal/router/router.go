@@ -17,7 +17,6 @@ func New(h *handler.Handler) chi.Router {
 	})
 	r.Route("/api/", func(r chi.Router) {
 		r.Use(Auth)
-
 		r.Get("/user/balance", h.RegistrationUser)
 		r.Post("/user/balance/withdraw", h.RegistrationUser)
 		r.Get("/user/withdrawals", h.RegistrationUser)
@@ -26,7 +25,7 @@ func New(h *handler.Handler) chi.Router {
 		r.Use(Auth)
 		r.Use(middleware.AllowContentType("text/plain"))
 		r.Post("/", h.LoadOrder)
-		r.Get("/", h.RegistrationUser)
+		r.Get("/", h.GetUserOrders)
 
 		r.Get("/test", h.Test)
 	})
