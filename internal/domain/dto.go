@@ -56,3 +56,8 @@ type AccrualServiceResponse struct {
 	Status  string          `json:"status"`
 	Accrual decimal.Decimal `json:"accrual,omitempty"`
 }
+
+type UserBalanceResponse struct {
+	Current   float32 `json:"current"`
+	Withdrawn float32 `json:"withdrawn"`
+}

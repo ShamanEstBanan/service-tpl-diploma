@@ -12,6 +12,8 @@ type storage interface {
 	CheckUser(ctx context.Context, user domain.AuthUser) (exist string, err error)
 	LoadOrder(ctx context.Context, orderID string, userID string) (err error)
 	GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error)
+	GetAccountBalance(ctx context.Context, accountId string) (balance float32, err error)
+	GetAccountWithdrawnPoints(ctx context.Context, accountId string) (withdrawnPoints float32, err error)
 }
 
 type service struct {

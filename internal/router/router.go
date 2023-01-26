@@ -15,12 +15,15 @@ func New(h *handler.Handler) chi.Router {
 		r.Use(middleware.AllowContentType("application/json"))
 		r.Post("/register", h.RegistrationUser)
 		r.Post("/login", h.AuthUser)
+		r.With(Auth).Get("/balance", h.GetBalance)
+		//TODO рефакторинг чреез r.With
+		//r.With(middleware.Logger).Post()
 	})
 	r.Route("/api/", func(r chi.Router) {
 		r.Use(Auth)
-		r.Get("/user/balance", h.RegistrationUser)
-		r.Post("/user/balance/withdraw", h.RegistrationUser)
-		r.Get("/user/withdrawals", h.RegistrationUser)
+
+		r.Post("/user/balance/withdraw", h.MakeWithdraw)
+		r.Get("/user/withdrawals", h.GetHistoryWithdrawals)
 	})
 	r.Route("/api/user/orders", func(r chi.Router) {
 		r.Use(Auth)

@@ -2,15 +2,19 @@ package storage
 
 import (
 	"context"
-	"service-tpl-diploma/internal/domain"
+	"fmt"
+	"time"
 )
 
-func (s *storage) GetAccountBalance(ctx context.Context, user domain.NewUser) error {
-	query := "INSERT INTO users (login,password) VALUES($1,crypt($2,gen_salt('bf',8)))"
+func (s *storage) GetAccountBalance(ctx context.Context, accountId string) (balance float32, err error) {
+	ctxT, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 
-	_, err := s.db.Exec(ctx, query, user.Login, user.Password)
+	query := fmt.Sprintf("SELECT balance FROM accounts WHERE id = '%s'", accountId)
+
+	err = s.db.QueryRow(ctxT, query).Scan(&balance)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return balance, nil
 }

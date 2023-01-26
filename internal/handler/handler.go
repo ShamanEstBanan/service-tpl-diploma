@@ -13,6 +13,7 @@ type service interface {
 	AuthUser(ctx context.Context, User domain.AuthUser) (string, error)
 	LoadOrder(ctx context.Context, orderId int, userId string) error
 	GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error)
+	GetUserBalance(ctx context.Context, userID string) (balance domain.UserBalanceResponse, err error)
 }
 type Handler struct {
 	lg      *zap.Logger

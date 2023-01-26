@@ -7,7 +7,7 @@ import (
 )
 
 func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) error {
-	var userId string
+	var accountId string
 
 	// TODO: Сделать через транзакции
 	query := "INSERT INTO users (login,password) VALUES($1,crypt($2,gen_salt('bf',8)))"
@@ -15,14 +15,15 @@ func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) error {
 	if err != nil {
 		return err
 	}
+
 	query = fmt.Sprintf("SELECT id FROM users WHERE login ='%s'", user.Login)
-	err = s.db.QueryRow(ctx, query).Scan(&userId)
+	err = s.db.QueryRow(ctx, query).Scan(&accountId)
 	if err != nil {
 		return err
 	}
 
 	query = "INSERT INTO accounts (id) VALUES($1)"
-	_, err = s.db.Exec(ctx, query, userId)
+	_, err = s.db.Exec(ctx, query, accountId)
 	if err != nil {
 		return err
 	}
