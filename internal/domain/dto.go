@@ -28,10 +28,17 @@ type Job interface {
 }
 
 type Order struct {
-	Number     string          `json:"number"`
-	Status     string          `json:"status"`
-	Accrual    decimal.Decimal `json:"accrual,omitempty"`
-	UploadedAt time.Time       `json:"uploaded_at"`
+	Number     string          `json:"number" db:"account_id"`
+	Status     string          `json:"status" db:"status"`
+	Accrual    decimal.Decimal `json:"accrual,omitempty" db:"accrual"`
+	UploadedAt time.Time       `json:"uploaded_at" db:"uploaded_at"`
+}
+
+type ResponseOrder struct {
+	Number     string `json:"number" db:"account_id"`
+	Status     string `json:"status" db:"status"`
+	Accrual    int64  `json:"accrual,omitempty" db:"accrual"`
+	UploadedAt string `json:"uploaded_at" db:"uploaded_at"`
 }
 type UserOrders struct {
 	Orders []Order

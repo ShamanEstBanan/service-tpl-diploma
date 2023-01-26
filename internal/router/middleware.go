@@ -39,7 +39,7 @@ func Auth(next http.Handler) http.Handler {
 			return
 		}
 		if err != nil {
-			http.Error(w, "", http.StatusInternalServerError)
+			http.Error(w, "", http.StatusUnauthorized)
 			log.Printf("invalid token: %s", headerParts)
 			return
 		}

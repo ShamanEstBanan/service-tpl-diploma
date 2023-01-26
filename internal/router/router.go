@@ -10,6 +10,7 @@ func New(h *handler.Handler) chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
+	r.Use(middleware.Compress(1))
 	r.Route("/api/user/", func(r chi.Router) {
 		r.Use(middleware.AllowContentType("application/json"))
 		r.Post("/register", h.RegistrationUser)

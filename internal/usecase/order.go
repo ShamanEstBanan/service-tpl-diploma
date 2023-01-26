@@ -2,11 +2,9 @@ package usecase
 
 import (
 	"context"
-	"github.com/shopspring/decimal"
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
 	"strconv"
-	"time"
 )
 
 func (s *service) LoadOrder(ctx context.Context, orderID int, userId string) error {
@@ -48,20 +46,7 @@ func checksum(number int) int {
 	return luhn % 10
 }
 
-func (s *service) GetUserOrders(ctx context.Context, userID string) (orders []domain.Order, err error) {
-	ss, _ := decimal.NewFromString("901.1")
-	orders = []domain.Order{
-		{
-			Number:     "1",
-			Status:     "1",
-			UploadedAt: time.Now(),
-		},
-		{
-			Number:     "2",
-			Status:     "3",
-			Accrual:    ss,
-			UploadedAt: time.Now(),
-		},
-	}
+func (s *service) GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error) {
+	orders, err = s.storage.GetUserOrders(ctx, userID)
 	return orders, nil
 }

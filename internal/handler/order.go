@@ -52,8 +52,22 @@ func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("userID")
 
 	orders, err := h.service.GetUserOrders(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if len(orders) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		_, err = w.Write([]byte(""))
+		if err != nil {
+			h.lg.Error(err.Error())
+			return
+		}
+		return
+	}
 	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(orders)
 	if err != nil {
 		h.lg.Error(err.Error())
