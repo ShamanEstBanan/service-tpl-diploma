@@ -14,6 +14,7 @@ type storage interface {
 	GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error)
 	GetAccountBalance(ctx context.Context, accountId string) (balance float32, err error)
 	GetAccountWithdrawnPoints(ctx context.Context, accountId string) (withdrawnPoints float32, err error)
+	MakeWithdrawn(ctx context.Context, userID string, orderID string, amount float32) (err error)
 }
 
 type service struct {

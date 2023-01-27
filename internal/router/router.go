@@ -16,14 +16,10 @@ func New(h *handler.Handler) chi.Router {
 		r.Post("/register", h.RegistrationUser)
 		r.Post("/login", h.AuthUser)
 		r.With(Auth).Get("/balance", h.GetBalance)
+		r.With(Auth).Post("/balance/withdraw", h.MakeWithdraw)
+		r.With(Auth).Get("/withdrawals", h.GetHistoryWithdrawals)
 		//TODO рефакторинг чреез r.With
-		//r.With(middleware.Logger).Post()
-	})
-	r.Route("/api/", func(r chi.Router) {
-		r.Use(Auth)
 
-		r.Post("/user/balance/withdraw", h.MakeWithdraw)
-		r.Get("/user/withdrawals", h.GetHistoryWithdrawals)
 	})
 	r.Route("/api/user/orders", func(r chi.Router) {
 		r.Use(Auth)

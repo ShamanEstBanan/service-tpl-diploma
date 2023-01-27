@@ -6,13 +6,16 @@ import (
 )
 
 var (
-	ErrInvalidAccessToken     = errors.New("invalid auth token")
-	ErrInvalidLoginOrPassword = errors.New("login or password is invalid")
-	ErrLoginIsEmpty           = errors.New("login is empty")
-	ErrPasswordIsEmpty        = errors.New("password is empty")
-	ErrInvalidOrderID         = errors.New("invalid order number")
-	ErrOrderAlreadyExist      = errors.New("orderID already exist")
-	ErrOrderAlreadyUploaded   = errors.New("order already uploaded ")
+	ErrInvalidAccessToken               = errors.New("invalid auth token")
+	ErrInvalidLoginOrPassword           = errors.New("login or password is invalid")
+	ErrLoginIsEmpty                     = errors.New("login is empty")
+	ErrPasswordIsEmpty                  = errors.New("password is empty")
+	ErrInvalidOrderID                   = errors.New("invalid order number")
+	ErrOrderAlreadyExist                = errors.New("orderID already exist")
+	ErrOrderAlreadyUploaded             = errors.New("order already uploaded ")
+	ErrWithdrawnAlreadyDoneForThisOrder = errors.New("withdrawn already done for this order")
+	ErrNotEnoughtPoints                 = errors.New("not enough points on balance")
+	ErrNoWithdrawn                      = errors.New("no withdrawn")
 )
 
 type SQLError struct {

@@ -14,6 +14,7 @@ type service interface {
 	LoadOrder(ctx context.Context, orderId int, userId string) error
 	GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error)
 	GetUserBalance(ctx context.Context, userID string) (balance domain.UserBalanceResponse, err error)
+	MakeWithdrawn(ctx context.Context, userID string, orderID string, sum float32) (err error)
 }
 type Handler struct {
 	lg      *zap.Logger

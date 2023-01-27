@@ -25,6 +25,9 @@ func (s *storage) LoadOrder(ctx context.Context, orderID string, userID string) 
 			var isUserOrder bool
 			q := fmt.Sprintf("SELECT EXISTS(SELECT * from orders WHERE id='%v' AND account_id='%s')", orderID, userID)
 			err = s.db.QueryRow(ctxCancel, q).Scan(&isUserOrder)
+			if err != nil {
+				return err
+			}
 			if isUserOrder {
 				return errs.ErrOrderAlreadyUploaded
 			} else {
