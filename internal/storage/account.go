@@ -18,3 +18,17 @@ func (s *storage) GetAccountBalance(ctx context.Context, accountId string) (bala
 	}
 	return balance, nil
 }
+
+func (s *storage) UpdateAccountBalance(ctx context.Context, orderId string, accrual float32) error {
+	ctxT, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	query := fmt.Sprintf(
+		"UPDATE accounts SET balance=balance+%v WHERE id = (SELECT account_id FROM orders WHERE id = '%s')",
+		accrual, orderId)
+	_, err := s.db.Exec(ctxT, query)
+	if err != nil {
+		return err
+	}
+	return nil
+}

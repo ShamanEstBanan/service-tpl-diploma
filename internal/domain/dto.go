@@ -52,9 +52,9 @@ const (
 )
 
 type AccrualServiceResponse struct {
-	OrderId string          `json:"order"`
-	Status  string          `json:"status"`
-	Accrual decimal.Decimal `json:"accrual,omitempty"`
+	OrderId string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float32 `json:"accrual,omitempty"`
 }
 
 type UserBalanceResponse struct {

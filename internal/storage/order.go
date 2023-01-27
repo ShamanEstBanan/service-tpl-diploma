@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"log"
 	"service-tpl-diploma/internal/domain"
@@ -39,17 +38,14 @@ func (s *storage) LoadOrder(ctx context.Context, orderID string, userID string) 
 	return nil
 }
 
-func (s *storage) UpdateOrder(ctx context.Context, orderID string, status string, accrual decimal.Decimal) error {
+func (s *storage) UpdateOrder(ctx context.Context, orderID string, status string, accrual float32) error {
 	ctxCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	fmt.Printf("orderId :%s\n, status:%s\n, accrual:%v\n", orderID, status, accrual)
-
 	q := fmt.Sprintf(
 		"UPDATE orders "+
-			"SET status = '%s', accrual = '%v', uploaded_at = now() "+
+			"SET status = '%s', accrual = %v, uploaded_at = now() "+
 			"WHERE id LIKE '%s'", status, accrual, orderID)
 
-	//query := "INSERT INTO orders (id, account_id, status, accrual) VALUES($1, $2, $3, $4)"
 	_, err := s.db.Exec(ctxCancel, q)
 	if err != nil {
 		log.Println(err)

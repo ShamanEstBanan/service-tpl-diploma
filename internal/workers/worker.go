@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -14,7 +13,8 @@ import (
 
 type storage interface {
 	GetOrdersForProcessing(ctx context.Context) ([]string, error)
-	UpdateOrder(ctx context.Context, orderID string, status string, accrual decimal.Decimal) error
+	UpdateOrder(ctx context.Context, orderID string, status string, accrual float32) error
+	UpdateAccountBalance(ctx context.Context, orderID string, accrual float32) error
 }
 
 type updateOrderStatusJob struct {
@@ -25,8 +25,7 @@ type updateOrderStatusJob struct {
 }
 
 func (j *updateOrderStatusJob) Run(ctx context.Context) error {
-	fmt.Println("OrderId in job:", j.orderID)
-
+	j.lg.Info("OrderId in job:", zap.String("orderId:", j.orderID))
 	//тут юзкейс похода в сервис чужой
 	//получаем данные по orderID
 	url := fmt.Sprintf("%s/api/orders/%s", j.accrualSystemAddress, j.orderID)
@@ -47,14 +46,15 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 		log.Println(err)
 		return nil
 	}
+
 	// обновляем значение в БД если статус INVALID или PROCESSED
 	if orderInfo.Status == domain.OrderAccrualStatusINVALID || orderInfo.Status == domain.OrderAccrualStatusPROCESSED {
 		err = j.st.UpdateOrder(ctx, orderInfo.OrderId, orderInfo.Status, orderInfo.Accrual)
 		if err != nil {
 			j.lg.Error("err while update status", zap.Error(err))
 		}
+		err = j.st.UpdateAccountBalance(ctx, orderInfo.OrderId, orderInfo.Accrual)
 	}
-
 	return nil
 }
 
@@ -91,7 +91,7 @@ func (s *StatusUpdater) Start() {
 			}
 			log.Println("Array of orders for processing: ", orders)
 
-			time.Sleep(1 * time.Minute)
+			time.Sleep(20 * time.Second)
 		}
 	}()
 }
