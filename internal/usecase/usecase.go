@@ -8,7 +8,7 @@ import (
 )
 
 type storage interface {
-	CreateUser(ctx context.Context, user domain.NewUser) error
+	CreateUser(ctx context.Context, user domain.NewUser) (string, error)
 	CheckUser(ctx context.Context, user domain.AuthUser) (exist string, err error)
 	LoadOrder(ctx context.Context, orderID string, userID string) (err error)
 	GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error)

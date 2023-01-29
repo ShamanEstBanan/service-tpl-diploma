@@ -19,7 +19,7 @@ func (h *Handler) RegistrationUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.CreateUser(r.Context(), newUser)
+	authToken, err := h.service.CreateUser(r.Context(), newUser)
 	if errors.Is(err, errs.ErrLoginIsEmpty) {
 		http.Error(w, errs.ErrLoginIsEmpty.Error(), http.StatusBadRequest)
 		return
@@ -41,6 +41,7 @@ func (h *Handler) RegistrationUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Add("Authorization", authToken)
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte("Success create"))
 	if err != nil {

@@ -4,24 +4,30 @@ import (
 	"context"
 	"fmt"
 	"github.com/dgrijalva/jwt-go/v4"
+	"go.uber.org/zap"
 	"log"
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
 	"time"
 )
 
-func (s *service) CreateUser(ctx context.Context, user domain.NewUser) error {
+func (s *service) CreateUser(ctx context.Context, user domain.NewUser) (authToken string, err error) {
 	if user.Login == "" {
-		return errs.ErrLoginIsEmpty
+		return "", errs.ErrLoginIsEmpty
 	} else if user.Password == "" {
-		return errs.ErrPasswordIsEmpty
+		return "", errs.ErrPasswordIsEmpty
 	}
-	err := s.storage.CreateUser(ctx, user)
+	userID, err := s.storage.CreateUser(ctx, user)
 	if err != nil {
-		s.lg.Sugar().Error(err.Error())
-		return err
+		s.lg.Error("Error register user:", zap.Error(err))
+		return "", err
 	}
-	return nil
+	token, err := generateToken(userID)
+	if err != nil {
+		s.lg.Error("Error generating token :", zap.Error(err))
+		return "", err
+	}
+	return token, nil
 }
 
 func (s *service) AuthUser(ctx context.Context, user domain.AuthUser) (authToken string, err error) {
@@ -32,7 +38,7 @@ func (s *service) AuthUser(ctx context.Context, user domain.AuthUser) (authToken
 	}
 	userId, err := s.storage.CheckUser(ctx, user)
 	if err != nil {
-		s.lg.Sugar().Error(err.Error())
+		s.lg.Error("Error auth user:", zap.Error(err))
 		return "", err
 	}
 	if userId == "" {

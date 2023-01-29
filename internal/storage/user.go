@@ -6,28 +6,28 @@ import (
 	"service-tpl-diploma/internal/domain"
 )
 
-func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) error {
-	var accountId string
+func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) (userID string, err error) {
 
 	// TODO: Сделать через транзакции
 	query := "INSERT INTO users (login,password) VALUES($1,crypt($2,gen_salt('bf',8)))"
-	_, err := s.db.Exec(ctx, query, user.Login, user.Password)
+	_, err = s.db.Exec(ctx, query, user.Login, user.Password)
 	if err != nil {
-		return err
+		return "", err
 	}
 
+	var accountId string
 	query = fmt.Sprintf("SELECT id FROM users WHERE login ='%s'", user.Login)
 	err = s.db.QueryRow(ctx, query).Scan(&accountId)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	query = "INSERT INTO accounts (id) VALUES($1)"
 	_, err = s.db.Exec(ctx, query, accountId)
 	if err != nil {
-		return err
+		return accountId, err
 	}
-	return nil
+	return accountId, nil
 }
 
 func (s *storage) CheckUser(ctx context.Context, user domain.AuthUser) (userID string, err error) {
