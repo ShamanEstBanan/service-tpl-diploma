@@ -88,20 +88,30 @@ func (s *storage) GetUserOrders(ctx context.Context, userID string) (orders []do
 }
 
 func (s *storage) GetOrdersForProcessing(ctx context.Context) ([]string, error) {
-	ctxCancel, cancel := context.WithTimeout(ctx, 50*time.Second)
+	ctxT, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	var orders []string
-	var orderId string
+
 	query := fmt.Sprintf(
-		"SELECT id FROM orders WHERE status IN ('%s', '%s')",
+		"SELECT id, status FROM orders WHERE status IN ('%s', '%s')",
 		domain.OrderInternalStatusNEW, domain.OrderInternalStatusPROCESSING,
 	)
-	rows, err := s.db.Query(ctxCancel, query)
+	rows, err := s.db.Query(ctxT, query)
 	if err != nil {
 		return nil, err
 	}
+	var orders []string
 	for rows.Next() {
-		err = rows.Scan(&orderId)
+		var orderId, status string
+		err = rows.Scan(&orderId, &status)
+		if status == domain.OrderInternalStatusNEW {
+			queryStatusUpdate := fmt.Sprintf(
+				"UPDATE orders SET status = '%s' WHERE id = '%s'",
+				domain.OrderInternalStatusPROCESSING, orderId)
+			_, err = s.db.Exec(ctxT, queryStatusUpdate)
+			if err != nil {
+				return nil, err
+			}
+		}
 		orders = append(orders, orderId)
 	}
 	return orders, nil
