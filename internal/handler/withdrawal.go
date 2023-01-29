@@ -67,8 +67,19 @@ func (h *Handler) MakeWithdraw(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetHistoryWithdrawals(w http.ResponseWriter, r *http.Request) {
-	h.lg.Sugar().Info("INFO:", r.Host+r.URL.Path)
-	_, err := w.Write([]byte("Success"))
+	userID := r.Header.Get("userID")
+	withdrawals, err := h.service.GetUserWithdrawals(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+	if len(withdrawals) == 0 {
+		http.Error(w, "No rows", http.StatusNoContent)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(withdrawals)
 	if err != nil {
 		h.lg.Error(err.Error())
 		return

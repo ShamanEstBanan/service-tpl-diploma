@@ -15,6 +15,7 @@ type storage interface {
 	GetAccountBalance(ctx context.Context, accountId string) (balance float32, err error)
 	GetAccountWithdrawnPoints(ctx context.Context, accountId string) (withdrawnPoints float32, err error)
 	MakeWithdrawn(ctx context.Context, userID string, orderID string, amount float32) (err error)
+	GetUserWithdrawals(ctx context.Context, userID string) ([]domain.Withdrawal, error)
 }
 
 type service struct {

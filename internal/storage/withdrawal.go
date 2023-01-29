@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"go.uber.org/zap"
+	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
 	"time"
 )
@@ -28,9 +30,8 @@ func (s *storage) GetAccountWithdrawnPoints(ctx context.Context, accountId strin
 }
 
 func (s *storage) MakeWithdrawn(ctx context.Context, accountID string, orderID string, amount float32) (err error) {
-	//ctxT, cancel := context.WithTimeout(ctx, 10*time.Second)
-	//defer cancel()
-	ctxT := context.Background()
+	ctxT, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 	tx, err := s.db.Begin(ctxT)
 	defer func() {
 		if err != nil {
@@ -68,4 +69,32 @@ func (s *storage) MakeWithdrawn(ctx context.Context, accountID string, orderID s
 	}
 
 	return nil
+}
+
+func (s *storage) GetUserWithdrawals(ctx context.Context, userID string) ([]domain.Withdrawal, error) {
+	ctxT, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	query := fmt.Sprintf(
+		"SELECT order_id, points, updated_at FROM withdrawals where account_id = '%s' ORDER BY updated_at DESC",
+		userID)
+	rows, err := s.db.Query(ctxT, query)
+	if err != nil {
+		s.lg.Error("ERROR db taking user's withdrawals:", zap.Error(err))
+		return nil, err
+	}
+	var withdrawals []domain.Withdrawal
+	for rows.Next() {
+		var processedAt time.Time
+		w := domain.Withdrawal{}
+		err = rows.Scan(&w.Order, &w.Sum, &processedAt)
+		if err != nil {
+			s.lg.Error("ERROR scan withdrawals:", zap.Error(err))
+			return nil, err
+		}
+		w.ProcessedAt = processedAt.Format(time.RFC3339)
+		withdrawals = append(withdrawals, w)
+	}
+	return withdrawals, nil
+
 }
