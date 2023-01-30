@@ -37,6 +37,10 @@ func (h *Handler) LoadOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusOK)
 		return
 	}
+	if errors.Is(err, errs.ErrInvalidOrderID) {
+		http.Error(w, errs.ErrInvalidOrderID.Error(), http.StatusUnprocessableEntity)
+		return
+	}
 	if err != nil {
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
