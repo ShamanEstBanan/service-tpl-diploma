@@ -33,10 +33,9 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	url := fmt.Sprintf("%s/api/orders/%s", j.accrualSystemAddress, j.orderID)
 
 	response, err := http.Get(url)
-	defer response.Body.Close()
 	if err != nil {
 		j.lg.Error("ERROR:", zap.Error(err))
-		return err
+		return nil
 	}
 	if response.StatusCode != http.StatusOK {
 		respMessage := fmt.Sprintf("Response:\nCode %v\n Message:%v", response.StatusCode, response.Body)
@@ -47,7 +46,7 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	err = json.NewDecoder(response.Body).Decode(&orderInfo)
 	if err != nil {
 		j.lg.Error("ERROR:", zap.Error(err))
-		return err
+		return nil
 	}
 
 	// обновляем значение в БД если статус INVALID или PROCESSED
@@ -59,7 +58,7 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 		err = j.st.UpdateAccountBalance(ctx, orderInfo.OrderID, orderInfo.Accrual)
 		if err != nil {
 			j.lg.Error("ERROR:", zap.Error(err))
-			return err
+			return nil
 		}
 	}
 	return nil

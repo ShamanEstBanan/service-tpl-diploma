@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -35,17 +34,13 @@ type App struct {
 }
 
 // listen OS signals to gracefully shutdown server
-func listen(ctx context.Context) error {
-	srv := http.Server{
-		Addr:              ":8181",
-		Handler:           nil,
-		BaseContext:       func(net.Listener) context.Context { return ctx },
-		ReadHeaderTimeout: 10 * time.Second,
-	}
+func listen(ctx context.Context, server *http.Server) error {
+	srv := server
 
 	eg, ctx := errgroup.WithContext(ctx)
-	eg.Go(srv.ListenAndServe)
 
+	eg.Go(srv.ListenAndServe)
+	log.Println("server started 1", zap.String("addr:", server.Addr))
 	eg.Go(func() error {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -65,7 +60,7 @@ func listen(ctx context.Context) error {
 func New() (*App, error) {
 	cfg := config.New()
 
-	lg, err := logger.New(true)
+	lg, err := logger.New(cfg.Debug)
 	if err != nil {
 		return nil, err
 	}
@@ -85,14 +80,17 @@ func New() (*App, error) {
 	st := storage.New(pool, lg)
 
 	// workerpool
-	// TODO вынести в конфиг значения
-	jobCount := 50
-	concurrency := 10
-	jobsCh := make(chan domain.Job, jobCount)
+	jobsCh := make(chan domain.Job, cfg.JobCount)
 	go func() {
-		err = workers.RunPool(context.Background(), concurrency, jobsCh)
+		ctx, cancel := signal.NotifyContext(
+			context.Background(),
+			syscall.SIGINT,
+			syscall.SIGTERM,
+		)
+		defer cancel()
+		err = workers.RunPool(ctx, cfg.Concurrency, jobsCh)
 		if err != nil {
-			log.Panic("FATAL ERROR while start worker-pool", err)
+			lg.Error(" ERROR worker-pool:", zap.Error(err))
 		}
 	}()
 
@@ -127,8 +125,11 @@ func (app *App) Run() error {
 	defer cancel()
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
-		return listen(ctx)
+		return listen(ctx, app.HTTPServer)
 	})
-	app.logger.Info("server started", zap.String("addr", app.HTTPServer.Addr))
-	return app.HTTPServer.ListenAndServe()
+	err := eg.Wait()
+	if err != nil {
+		return err
+	}
+	return nil
 }

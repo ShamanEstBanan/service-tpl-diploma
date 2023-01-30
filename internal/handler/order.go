@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"strconv"
@@ -25,7 +26,7 @@ func (h *Handler) LoadOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid format of order number", http.StatusUnprocessableEntity)
 		return
 	}
-	h.lg.Sugar().Info("Order number: ", orderNumber)
+	h.lg.Info("Order number: ", zap.Int("orderID:", orderNumber))
 	userID := r.Header.Get("userID")
 	err = h.service.LoadOrder(r.Context(), orderNumber, userID)
 	if errors.Is(err, errs.ErrOrderAlreadyExist) {

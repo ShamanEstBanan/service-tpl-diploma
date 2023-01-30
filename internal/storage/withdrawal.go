@@ -84,6 +84,7 @@ func (s *storage) GetUserWithdrawals(ctx context.Context, userID string) ([]doma
 		s.lg.Error("ERROR db taking user's withdrawals:", zap.Error(err))
 		return nil, err
 	}
+	defer rows.Close()
 	var withdrawals []domain.Withdrawal
 	for rows.Next() {
 		var processedAt time.Time

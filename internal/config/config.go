@@ -11,6 +11,9 @@ type Config struct {
 	RunAddress           string `env:"RUN_ADDRESS"`
 	PostgresDSN          string `env:"DATABASE_URI"`
 	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	Debug                bool   `env:"DEBUG_MODE" envDefault:"true"`
+	JobCount             int    `env:"JOB_COUNT" envDefault:"50"`
+	Concurrency          int    `env:"CONCURRENCY" envDefault:"10"`
 }
 
 func New() *Config {
