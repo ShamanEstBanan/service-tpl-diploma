@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go.uber.org/zap"
+	"io"
 	"log"
 	"net/http"
 	"service-tpl-diploma/internal/domain"
@@ -31,9 +32,16 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	url := fmt.Sprintf("%s/api/orders/%s", j.accrualSystemAddress, j.orderID)
 
 	response, err := http.Get(url)
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(response.Body)
+
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		j.lg.Error("ERROR:", zap.Error(err))
+		return err
 	}
 	if response.StatusCode != http.StatusOK {
 		respMessage := fmt.Sprintf("Responce:\nCode %v\n Message:%v", response.StatusCode, response.Body)
@@ -43,17 +51,17 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	orderInfo := domain.AccrualServiceResponse{}
 	err = json.NewDecoder(response.Body).Decode(&orderInfo)
 	if err != nil {
-		log.Println(err)
-		return nil
+		j.lg.Error("ERROR:", zap.Error(err))
+		return err
 	}
 
 	// обновляем значение в БД если статус INVALID или PROCESSED
 	if orderInfo.Status == domain.OrderAccrualStatusINVALID || orderInfo.Status == domain.OrderAccrualStatusPROCESSED {
-		err = j.st.UpdateOrder(ctx, orderInfo.OrderId, orderInfo.Status, orderInfo.Accrual)
+		err = j.st.UpdateOrder(ctx, orderInfo.OrderID, orderInfo.Status, orderInfo.Accrual)
 		if err != nil {
 			j.lg.Error("err while update status", zap.Error(err))
 		}
-		err = j.st.UpdateAccountBalance(ctx, orderInfo.OrderId, orderInfo.Accrual)
+		err = j.st.UpdateAccountBalance(ctx, orderInfo.OrderID, orderInfo.Accrual)
 	}
 	return nil
 }

@@ -36,15 +36,15 @@ func (s *service) AuthUser(ctx context.Context, user domain.AuthUser) (authToken
 	} else if user.Password == "" {
 		return "", errs.ErrPasswordIsEmpty
 	}
-	userId, err := s.storage.CheckUser(ctx, user)
+	userID, err := s.storage.CheckUser(ctx, user)
 	if err != nil {
 		s.lg.Error("Error auth user:", zap.Error(err))
 		return "", err
 	}
-	if userId == "" {
+	if userID == "" {
 		return "", errs.ErrInvalidLoginOrPassword
 	}
-	token, err := generateToken(userId)
+	token, err := generateToken(userID)
 	if err != nil {
 		return "", err
 	}
@@ -60,12 +60,12 @@ type Claims struct {
 	Username string `json:"username"`
 }
 
-func generateToken(userId string) (string, error) {
+func generateToken(userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt: jwt.At(time.Now()),
 		},
-		Username: userId,
+		Username: userID,
 	})
 	stringToken, err := token.SignedString([]byte(signingKey))
 	if err != nil {

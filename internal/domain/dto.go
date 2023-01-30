@@ -19,8 +19,6 @@ type AuthUser struct {
 const (
 	OrderInternalStatusNEW        = "NEW"
 	OrderInternalStatusPROCESSING = "PROCESSING"
-	OrderInternalStatusINVALID    = "INVALID"
-	OrderInternalStatusPROCESSED  = "PROCESSED"
 )
 
 type Job interface {
@@ -45,14 +43,12 @@ type UserOrders struct {
 }
 
 const (
-	OrderAccrualStatusREGISTERED = "REGISTERED"
-	OrderAccrualStatusINVALID    = "INVALID"
-	OrderAccrualStatusPROCESSING = "PROCESSING"
-	OrderAccrualStatusPROCESSED  = "PROCESSED"
+	OrderAccrualStatusINVALID   = "INVALID"
+	OrderAccrualStatusPROCESSED = "PROCESSED"
 )
 
 type AccrualServiceResponse struct {
-	OrderId string  `json:"order"`
+	OrderID string  `json:"order"`
 	Status  string  `json:"status"`
 	Accrual float32 `json:"accrual,omitempty"`
 }

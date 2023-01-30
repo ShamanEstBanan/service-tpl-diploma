@@ -12,11 +12,11 @@ import (
 	"time"
 )
 
-func (s *storage) GetAccountWithdrawnPoints(ctx context.Context, accountId string) (withdrawnPoints float32, err error) {
+func (s *storage) GetAccountWithdrawnPoints(ctx context.Context, accountID string) (withdrawnPoints float32, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	query := fmt.Sprintf("SELECT sum(points) FROM withdrawals WHERE account_id = '%s'", accountId)
+	query := fmt.Sprintf("SELECT sum(points) FROM withdrawals WHERE account_id = '%s'", accountID)
 	err = s.db.QueryRow(ctxT, query).Scan(&withdrawnPoints)
 
 	erNull := errors.New("cannot scan NULL into *float32")

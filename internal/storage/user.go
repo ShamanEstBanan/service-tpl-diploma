@@ -6,7 +6,7 @@ import (
 	"service-tpl-diploma/internal/domain"
 )
 
-func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) (userID string, err error) {
+func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) (accountID string, err error) {
 
 	// TODO: Сделать через транзакции
 	query := "INSERT INTO users (login,password) VALUES($1,crypt($2,gen_salt('bf',8)))"
@@ -15,19 +15,18 @@ func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) (userID s
 		return "", err
 	}
 
-	var accountId string
 	query = fmt.Sprintf("SELECT id FROM users WHERE login ='%s'", user.Login)
-	err = s.db.QueryRow(ctx, query).Scan(&accountId)
+	err = s.db.QueryRow(ctx, query).Scan(&accountID)
 	if err != nil {
 		return "", err
 	}
 
 	query = "INSERT INTO accounts (id) VALUES($1)"
-	_, err = s.db.Exec(ctx, query, accountId)
+	_, err = s.db.Exec(ctx, query, accountID)
 	if err != nil {
-		return accountId, err
+		return accountID, err
 	}
-	return accountId, nil
+	return accountID, nil
 }
 
 func (s *storage) CheckUser(ctx context.Context, user domain.AuthUser) (userID string, err error) {
@@ -49,14 +48,4 @@ func (s *storage) CheckUser(ctx context.Context, user domain.AuthUser) (userID s
 		return "", err
 	}
 	return userID, err
-}
-
-func (s *storage) GetUserId(ctx context.Context, login string) (id string, err error) {
-	query := fmt.Sprintf("SELECT id FROM users WHERE login = '%s'", login)
-
-	err = s.db.QueryRow(ctx, query).Scan(&id)
-	if err != nil {
-		return "", err
-	}
-	return id, nil
 }

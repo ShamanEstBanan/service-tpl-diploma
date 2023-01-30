@@ -57,13 +57,6 @@ func (s *storage) UpdateOrder(ctx context.Context, orderID string, status string
 	return nil
 }
 
-type UserOrder struct {
-	OrderId    string `db:"id"`
-	Status     string `db:"status"`
-	Accrual    int64  `db:"accrual"`
-	UploadedAt string `db:"uploaded_at"`
-}
-
 func (s *storage) GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error) {
 	ctxCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -74,9 +67,9 @@ func (s *storage) GetUserOrders(ctx context.Context, userID string) (orders []do
 	}
 	for rows.Next() {
 		var order domain.ResponseOrder
-		var accId string
+		var accID string
 		var uploadedAt, updatedAt time.Time
-		err = rows.Scan(&order.Number, &accId, &order.Status, &order.Accrual, &uploadedAt, &updatedAt)
+		err = rows.Scan(&order.Number, &accID, &order.Status, &order.Accrual, &uploadedAt, &updatedAt)
 		if err != nil {
 			s.lg.Error("ERROR while parse user order: ", zap.Error(err))
 			continue
@@ -101,18 +94,21 @@ func (s *storage) GetOrdersForProcessing(ctx context.Context) ([]string, error) 
 	}
 	var orders []string
 	for rows.Next() {
-		var orderId, status string
-		err = rows.Scan(&orderId, &status)
+		var orderID, status string
+		err = rows.Scan(&orderID, &status)
+		if err != nil {
+			return nil, err
+		}
 		if status == domain.OrderInternalStatusNEW {
 			queryStatusUpdate := fmt.Sprintf(
 				"UPDATE orders SET status = '%s' WHERE id = '%s'",
-				domain.OrderInternalStatusPROCESSING, orderId)
+				domain.OrderInternalStatusPROCESSING, orderID)
 			_, err = s.db.Exec(ctxT, queryStatusUpdate)
 			if err != nil {
 				return nil, err
 			}
 		}
-		orders = append(orders, orderId)
+		orders = append(orders, orderID)
 	}
 	return orders, nil
 }

@@ -3,6 +3,7 @@ package workers
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"service-tpl-diploma/internal/domain"
 )
@@ -16,7 +17,7 @@ func RunPool(ctx context.Context, size int, jobs chan domain.Job) error {
 				case job := <-jobs:
 					err := job.Run(ctx)
 					if err != nil {
-						fmt.Printf("Job error: %s \n", err)
+						zap.Any("Job error: %s \n", err)
 						return err
 					}
 				case <-ctx.Done():

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (s *service) LoadOrder(ctx context.Context, orderID int, userId string) error {
+func (s *service) LoadOrder(ctx context.Context, orderID int, userID string) error {
 	validNum := LunaValidation(orderID)
 	if !validNum {
 		s.lg.Error(errs.ErrInvalidOrderID.Error())
@@ -15,7 +15,7 @@ func (s *service) LoadOrder(ctx context.Context, orderID int, userId string) err
 	}
 	oi := int64(orderID)
 	strOrderID := strconv.FormatInt(oi, 10)
-	err := s.storage.LoadOrder(ctx, strOrderID, userId)
+	err := s.storage.LoadOrder(ctx, strOrderID, userID)
 	if err != nil {
 		s.lg.Error(err.Error())
 		return err
@@ -48,5 +48,8 @@ func checksum(number int) int {
 
 func (s *service) GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error) {
 	orders, err = s.storage.GetUserOrders(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	return orders, nil
 }

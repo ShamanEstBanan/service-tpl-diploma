@@ -11,7 +11,7 @@ import (
 type service interface {
 	CreateUser(ctx context.Context, user domain.NewUser) (string, error)
 	AuthUser(ctx context.Context, User domain.AuthUser) (string, error)
-	LoadOrder(ctx context.Context, orderId int, userId string) error
+	LoadOrder(ctx context.Context, orderID int, userID string) error
 	GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error)
 	GetUserBalance(ctx context.Context, userID string) (balance domain.UserBalanceResponse, err error)
 	MakeWithdrawn(ctx context.Context, userID string, orderID string, sum float32) (err error)
