@@ -34,10 +34,10 @@ type Order struct {
 }
 
 type ResponseOrder struct {
-	Number     string `json:"number" db:"account_id"`
-	Status     string `json:"status" db:"status"`
-	Accrual    int64  `json:"accrual,omitempty" db:"accrual"`
-	UploadedAt string `json:"uploaded_at" db:"uploaded_at"`
+	Number     string  `json:"number" db:"account_id"`
+	Status     string  `json:"status" db:"status"`
+	Accrual    float32 `json:"accrual,omitempty" db:"accrual"`
+	UploadedAt string  `json:"uploaded_at" db:"uploaded_at"`
 }
 type UserOrders struct {
 	Orders []Order

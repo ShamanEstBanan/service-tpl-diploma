@@ -62,7 +62,7 @@ func (s *storage) UpdateOrder(ctx context.Context, orderID string, status string
 func (s *storage) GetUserOrders(ctx context.Context, userID string) (orders []domain.ResponseOrder, err error) {
 	ctxCancel, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	query := fmt.Sprintf("SELECT * FROM orders WHERE account_id='%s' ORDER BY uploaded_at DESC", userID)
+	query := fmt.Sprintf("SELECT id,status,accrual, uploaded_at FROM orders WHERE account_id='%s' ORDER BY uploaded_at DESC", userID)
 	rows, err := s.db.Query(ctxCancel, query)
 	defer rows.Close()
 	if err != nil {
@@ -70,9 +70,8 @@ func (s *storage) GetUserOrders(ctx context.Context, userID string) (orders []do
 	}
 	for rows.Next() {
 		var order domain.ResponseOrder
-		var accID string
-		var uploadedAt, updatedAt time.Time
-		err = rows.Scan(&order.Number, &accID, &order.Status, &order.Accrual, &uploadedAt, &updatedAt)
+		var uploadedAt time.Time
+		err = rows.Scan(&order.Number, &order.Status, &order.Accrual, &uploadedAt)
 		if err != nil {
 			s.lg.Error("ERROR while parse user order: ", zap.Error(err))
 			continue
