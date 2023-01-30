@@ -50,7 +50,7 @@ func (s *storage) MakeWithdrawn(ctx context.Context, accountID string, orderID s
 	}
 	newBalance := balance - amount
 	if newBalance < 0 {
-		return errs.ErrNotEnoughtPoints
+		return errs.ErrNotEnoughPoints
 	}
 
 	qUpdBalance := fmt.Sprintf("UPDATE accounts SET balance=%v WHERE id = '%s'", newBalance, accountID)

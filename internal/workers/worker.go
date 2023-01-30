@@ -30,7 +30,7 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	j.lg.Info("OrderId in job:", zap.String("orderId:", j.orderID))
 	url := fmt.Sprintf("%s/api/orders/%s", j.accrualSystemAddress, j.orderID)
 	response, err := http.Get(url)
-
+	defer response.Body.Close()
 	if err != nil {
 		j.lg.Error("ERROR:", zap.Error(err))
 		return nil
@@ -42,8 +42,6 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	}
 	orderInfo := domain.AccrualServiceResponse{}
 	err = json.NewDecoder(response.Body).Decode(&orderInfo)
-	respMessage := fmt.Sprintf("Response:\nCode %v\n Message:%v", response.StatusCode, orderInfo)
-	log.Println(respMessage)
 	if err != nil {
 		j.lg.Error("ERROR parsing order info body:", zap.Error(err))
 		return nil

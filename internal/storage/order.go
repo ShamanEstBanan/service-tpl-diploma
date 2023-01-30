@@ -64,10 +64,11 @@ func (s *storage) GetUserOrders(ctx context.Context, userID string) (orders []do
 	defer cancel()
 	query := fmt.Sprintf("SELECT id,status,accrual, uploaded_at FROM orders WHERE account_id='%s' ORDER BY uploaded_at DESC", userID)
 	rows, err := s.db.Query(ctxCancel, query)
-	defer rows.Close()
+
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var order domain.ResponseOrder
 		var uploadedAt time.Time
@@ -91,10 +92,11 @@ func (s *storage) GetOrdersForProcessing(ctx context.Context) ([]string, error) 
 		domain.OrderInternalStatusNEW, domain.OrderInternalStatusPROCESSING,
 	)
 	rows, err := s.db.Query(ctxT, query)
-	defer rows.Close()
+
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var orders []string
 	for rows.Next() {
 		var orderID, status string

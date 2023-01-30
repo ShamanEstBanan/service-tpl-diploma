@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 
 	"service-tpl-diploma/internal/domain"
@@ -30,8 +29,7 @@ func (h *Handler) RegistrationUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errs.ErrPasswordIsEmpty.Error(), http.StatusBadRequest)
 		return
 	}
-	duplicateErr := errs.NewSQLError(pgerrcode.DuplicateJSONObjectKeyValue)
-	if errors.As(err, &duplicateErr) {
+	if errors.Is(err, errs.ErrLoginAlreadyExist) {
 		h.lg.Error("Error: ", zap.Any("err", err))
 		http.Error(w, "Login already exist", http.StatusConflict)
 		return

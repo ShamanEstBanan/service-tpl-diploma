@@ -50,7 +50,7 @@ func (h *Handler) MakeWithdraw(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
-	if errors.Is(err, errs.ErrNotEnoughtPoints) {
+	if errors.Is(err, errs.ErrNotEnoughPoints) {
 		http.Error(w, err.Error(), http.StatusPaymentRequired)
 		return
 	}

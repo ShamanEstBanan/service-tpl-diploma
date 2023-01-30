@@ -3,6 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
+	"service-tpl-diploma/internal/errs"
 
 	"service-tpl-diploma/internal/domain"
 )
@@ -14,7 +17,13 @@ func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) (accountI
 	if err != nil {
 		return "", err
 	}
-
+	switch e := err.(type) {
+	case *pgconn.PgError:
+		switch e.Code {
+		case pgerrcode.UniqueViolation:
+			return "", errs.ErrLoginAlreadyExist
+		}
+	}
 	query = fmt.Sprintf("SELECT id FROM users WHERE login ='%s'", user.Login)
 	err = s.db.QueryRow(ctx, query).Scan(&accountID)
 	if err != nil {
