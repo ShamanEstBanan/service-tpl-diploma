@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
-	"time"
 )
 
 func (s *storage) GetAccountWithdrawnPoints(ctx context.Context, accountID string) (withdrawnPoints float32, err error) {
@@ -96,5 +97,4 @@ func (s *storage) GetUserWithdrawals(ctx context.Context, userID string) ([]doma
 		withdrawals = append(withdrawals, w)
 	}
 	return withdrawals, nil
-
 }

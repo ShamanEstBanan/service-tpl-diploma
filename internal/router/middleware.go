@@ -4,9 +4,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
+
 	"service-tpl-diploma/internal/errs"
 	"service-tpl-diploma/internal/usecase"
-	"strings"
 )
 
 // TODO убрать в env

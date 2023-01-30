@@ -18,8 +18,7 @@ func New(h *handler.Handler) chi.Router {
 		r.With(Auth).Get("/balance", h.GetBalance)
 		r.With(Auth).Post("/balance/withdraw", h.MakeWithdraw)
 		r.With(Auth).Get("/withdrawals", h.GetHistoryWithdrawals)
-		//TODO рефакторинг чреез r.With
-
+		// TODO рефакторинг чреез r.With
 	})
 	r.Route("/api/user/orders", func(r chi.Router) {
 		r.Use(Auth)

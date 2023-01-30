@@ -3,8 +3,10 @@ package handler
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"net/http"
+
+	"go.uber.org/zap"
+
 	"service-tpl-diploma/internal/domain"
 )
 

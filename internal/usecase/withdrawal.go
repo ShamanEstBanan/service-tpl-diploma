@@ -2,10 +2,11 @@ package usecase
 
 import (
 	"context"
+	"strconv"
+
 	"go.uber.org/zap"
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
-	"strconv"
 )
 
 func (s *service) MakeWithdrawn(ctx context.Context, userID string, orderID string, sum float32) (err error) {
@@ -28,7 +29,6 @@ func (s *service) MakeWithdrawn(ctx context.Context, userID string, orderID stri
 }
 
 func (s *service) GetUserWithdrawals(ctx context.Context, userID string) ([]domain.Withdrawal, error) {
-
 	withdrawals, err := s.storage.GetUserWithdrawals(ctx, userID)
 	if err != nil {
 		return nil, err

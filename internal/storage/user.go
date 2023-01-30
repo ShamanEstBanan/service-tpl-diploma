@@ -3,11 +3,11 @@ package storage
 import (
 	"context"
 	"fmt"
+
 	"service-tpl-diploma/internal/domain"
 )
 
 func (s *storage) CreateUser(ctx context.Context, user domain.NewUser) (accountID string, err error) {
-
 	// TODO: Сделать через транзакции
 	query := "INSERT INTO users (login,password) VALUES($1,crypt($2,gen_salt('bf',8)))"
 	_, err = s.db.Exec(ctx, query, user.Login, user.Password)

@@ -2,9 +2,10 @@ package usecase
 
 import (
 	"context"
+	"strconv"
+
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
-	"strconv"
 )
 
 func (s *service) LoadOrder(ctx context.Context, orderID int, userID string) error {
@@ -34,14 +35,14 @@ func checksum(number int) int {
 		cur := number % 10
 
 		if i%2 == 0 { // even
-			cur = cur * 2
+			cur *= 2
 			if cur > 9 {
 				cur = cur%10 + cur/10
 			}
 		}
 
 		luhn += cur
-		number = number / 10
+		number /= 10
 	}
 	return luhn % 10
 }

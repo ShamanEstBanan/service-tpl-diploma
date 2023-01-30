@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"service-tpl-diploma/internal/errs"
 	"strconv"
+
+	"service-tpl-diploma/internal/errs"
 )
 
 func (h *Handler) LoadOrder(w http.ResponseWriter, r *http.Request) {

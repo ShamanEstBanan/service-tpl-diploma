@@ -4,7 +4,8 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	_ "github.com/jackc/pgx/v4/stdlib" //nolint: revive
+
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/pressly/goose/v3"
 )
 

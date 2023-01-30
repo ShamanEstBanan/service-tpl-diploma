@@ -3,9 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
+
 	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
-	"net/http"
+
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
 )

@@ -3,12 +3,14 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/dgrijalva/jwt-go/v4"
 	"go.uber.org/zap"
-	"log"
+
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
-	"time"
 )
 
 func (s *service) CreateUser(ctx context.Context, user domain.NewUser) (authToken string, err error) {

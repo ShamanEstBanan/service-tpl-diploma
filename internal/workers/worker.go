@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	"log"
 	"net/http"
-	"service-tpl-diploma/internal/domain"
 	"time"
+
+	"go.uber.org/zap"
+
+	"service-tpl-diploma/internal/domain"
 )
 
 type storage interface {
@@ -27,24 +29,22 @@ type updateOrderStatusJob struct {
 
 func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	j.lg.Info("OrderId in job:", zap.String("orderId:", j.orderID))
-	//тут юзкейс похода в сервис чужой
-	//получаем данные по orderID
+	// тут юзкейс похода в сервис чужой
+	// получаем данные по orderID
 	url := fmt.Sprintf("%s/api/orders/%s", j.accrualSystemAddress, j.orderID)
 
 	response, err := http.Get(url)
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
+	defer func(body io.ReadCloser) {
+		err := body.Close()
 		if err != nil {
-
 		}
 	}(response.Body)
-
 	if err != nil {
 		j.lg.Error("ERROR:", zap.Error(err))
 		return err
 	}
 	if response.StatusCode != http.StatusOK {
-		respMessage := fmt.Sprintf("Responce:\nCode %v\n Message:%v", response.StatusCode, response.Body)
+		respMessage := fmt.Sprintf("Response:\nCode %v\n Message:%v", response.StatusCode, response.Body)
 		log.Println(respMessage)
 		return nil
 	}
@@ -62,6 +62,10 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 			j.lg.Error("err while update status", zap.Error(err))
 		}
 		err = j.st.UpdateAccountBalance(ctx, orderInfo.OrderID, orderInfo.Accrual)
+		if err != nil {
+			j.lg.Error("ERROR:", zap.Error(err))
+			return err
+		}
 	}
 	return nil
 }

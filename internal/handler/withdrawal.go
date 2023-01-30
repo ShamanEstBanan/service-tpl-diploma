@@ -3,8 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"go.uber.org/zap"
 	"net/http"
+
+	"go.uber.org/zap"
+
 	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/errs"
 )
@@ -14,7 +16,10 @@ func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	balanceInfo, err := h.service.GetUserBalance(r.Context(), userID)
 	if errors.Is(err, errs.ErrNoWithdrawn) {
 		w.Header().Set("content-type", "application/json")
-		_ = json.NewEncoder(w).Encode(balanceInfo)
+		err = json.NewEncoder(w).Encode(balanceInfo)
+		if err != nil {
+			h.lg.Error(err.Error())
+		}
 		return
 	}
 	if err != nil {

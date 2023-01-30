@@ -3,6 +3,7 @@ package workers
 import (
 	"context"
 	"fmt"
+
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"service-tpl-diploma/internal/domain"

@@ -3,13 +3,17 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 	"log"
 	"net"
 	"net/http"
 	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
+
 	"service-tpl-diploma/internal/app/migrate"
 	"service-tpl-diploma/internal/config"
 	"service-tpl-diploma/internal/domain"
@@ -19,8 +23,6 @@ import (
 	"service-tpl-diploma/internal/usecase"
 	"service-tpl-diploma/internal/workers"
 	"service-tpl-diploma/pkg/logger"
-	"syscall"
-	"time"
 )
 
 const (
@@ -74,7 +76,7 @@ func New() (*App, error) {
 	}
 	ctx := context.Background()
 
-	//init storage
+	// init storage
 	pool, err := pgxpool.New(ctx, cfg.PostgresDSN)
 	if err != nil {
 		lg.Error(err.Error())
@@ -90,7 +92,7 @@ func New() (*App, error) {
 	go func() {
 		err = workers.RunPool(context.Background(), concurrency, jobsCh)
 		if err != nil {
-			log.Fatal("FATAL ERROR while start worker-pool", err)
+			log.Panic("FATAL ERROR while start worker-pool", err)
 		}
 	}()
 
@@ -98,9 +100,9 @@ func New() (*App, error) {
 	w := workers.NewStatusUpdater(st, jobsCh, lg, cfg.AccrualSystemAddress)
 	w.Start()
 
-	//init service
+	// init service
 	usecases := usecase.New(lg, st)
-	//init server
+	// init server
 	h := handler.New(lg, usecases)
 	r := router.New(h)
 	server := &http.Server{
