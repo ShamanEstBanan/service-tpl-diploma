@@ -97,7 +97,7 @@ func (s *StatusUpdater) Start() {
 			}
 			log.Println("Array of orders for processing: ", orders)
 
-			time.Sleep(20 * time.Second)
+			time.Sleep(2 * time.Second)
 		}
 	}()
 }
