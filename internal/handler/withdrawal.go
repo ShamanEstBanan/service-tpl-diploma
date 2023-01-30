@@ -14,7 +14,7 @@ import (
 func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("userID")
 	balanceInfo, err := h.service.GetUserBalance(r.Context(), userID)
-	if errors.Is(err, errs.ErrNoWithdrawn) {
+	if errors.Is(err, errs.ErrNoPoints) {
 		w.Header().Set("content-type", "application/json")
 		err = json.NewEncoder(w).Encode(balanceInfo)
 		if err != nil {

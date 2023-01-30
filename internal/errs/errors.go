@@ -17,6 +17,7 @@ var (
 	ErrWithdrawnAlreadyDoneForThisOrder = errors.New("withdrawn already done for this order")
 	ErrNotEnoughPoints                  = errors.New("not enough points on balance")
 	ErrNoWithdrawn                      = errors.New("no withdrawn")
+	ErrNoPoints                         = errors.New("can't scan into dest[0]: cannot scan NULL into *float32")
 )
 
 type SQLError struct {

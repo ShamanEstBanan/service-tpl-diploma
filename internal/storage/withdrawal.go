@@ -13,21 +13,18 @@ import (
 	"service-tpl-diploma/internal/errs"
 )
 
-func (s *storage) GetAccountWithdrawnPoints(ctx context.Context, accountID string) (withdrawnPoints float32, err error) {
+func (s *storage) GetAccountWithdrawnPoints(ctx context.Context, accountID string) (points float32, err error) {
 	ctxT, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-
+	var wp float32
 	query := fmt.Sprintf("SELECT sum(points) FROM withdrawals WHERE account_id = '%s'", accountID)
-	err = s.db.QueryRow(ctxT, query).Scan(&withdrawnPoints)
+	err = s.db.QueryRow(ctxT, query).Scan(&wp)
 
-	erNull := errors.New("cannot scan NULL into *float32")
-	if err != nil {
-		if errors.As(err, &erNull) {
-			return 0, errs.ErrNoWithdrawn
-		}
-		return 0, err
+	if errors.Is(err, errs.ErrNoPoints) {
+		return 0, errs.ErrNoPoints
 	}
-	return withdrawnPoints, nil
+
+	return wp, nil
 }
 
 func (s *storage) MakeWithdrawn(ctx context.Context, accountID string, orderID string, amount float32) (err error) {
