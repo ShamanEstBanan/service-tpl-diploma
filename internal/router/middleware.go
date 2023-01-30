@@ -4,8 +4,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strings"
-
 	"service-tpl-diploma/internal/errs"
 	"service-tpl-diploma/internal/usecase"
 )
@@ -22,26 +20,26 @@ func Auth(next http.Handler) http.Handler {
 			log.Printf("No auth token in headers")
 			return
 		}
-		headerParts := strings.Split(authHeader, " ")
-		if len(headerParts) != 2 {
-			http.Error(w, "not authorized", http.StatusUnauthorized)
-			log.Printf("invalid auth header: %s", headerParts)
-			return
-		}
-		if headerParts[0] != "Bearer" {
-			http.Error(w, "not authorized", http.StatusUnauthorized)
-			log.Printf("invalid auth header: %s", headerParts)
-			return
-		}
-		userID, err := usecase.ParseToken(headerParts[1], []byte(signingKey))
+		//headerParts := strings.Split(authHeader, " ")
+		//if len(headerParts) != 2 {
+		//	http.Error(w, "not authorized", http.StatusUnauthorized)
+		//	log.Printf("invalid auth header: %s", headerParts)
+		//	return
+		//}
+		//if headerParts[0] != "Bearer" {
+		//	http.Error(w, "not authorized", http.StatusUnauthorized)
+		//	log.Printf("invalid auth header: %s", headerParts)
+		//	return
+		//}
+		userID, err := usecase.ParseToken(authHeader, []byte(signingKey))
 		if errors.Is(err, errs.ErrInvalidAccessToken) {
 			http.Error(w, "not authorized", http.StatusUnauthorized)
-			log.Printf("invalid token: %s", headerParts)
+			log.Printf("invalid token: %s", authHeader)
 			return
 		}
 		if err != nil {
 			http.Error(w, "", http.StatusUnauthorized)
-			log.Printf("invalid token: %s", headerParts)
+			log.Printf("invalid token: %s", authHeader)
 			return
 		}
 
