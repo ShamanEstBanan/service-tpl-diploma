@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"time"
@@ -34,11 +33,7 @@ func (j *updateOrderStatusJob) Run(ctx context.Context) error {
 	url := fmt.Sprintf("%s/api/orders/%s", j.accrualSystemAddress, j.orderID)
 
 	response, err := http.Get(url)
-	defer func(body io.ReadCloser) {
-		err := body.Close()
-		if err != nil {
-		}
-	}(response.Body)
+	defer response.Body.Close()
 	if err != nil {
 		j.lg.Error("ERROR:", zap.Error(err))
 		return err
