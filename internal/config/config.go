@@ -2,20 +2,24 @@ package config
 
 import (
 	"flag"
-	"github.com/caarlos0/env"
 	"log"
+
+	"github.com/caarlos0/env"
 )
 
 type Config struct {
-	RunAddress          string `env:"RUN_ADDRESS"`
-	PostgresDSN         string `env:"DATABASE_URI"`
-	AccrualSystemAddres string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	RunAddress           string `env:"RUN_ADDRESS"`
+	PostgresDSN          string `env:"DATABASE_URI"`
+	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	Debug                bool   `env:"DEBUG_MODE" envDefault:"false"`
+	JobCount             int    `env:"JOB_COUNT" envDefault:"50"`
+	Concurrency          int    `env:"CONCURRENCY" envDefault:"10"`
 }
 
 func New() *Config {
 	cfg := Config{}
 
-	//заполнение конфига из значений аргументов командной строки
+	// заполнение конфига из значений аргументов командной строки
 	flag.StringVar(
 		&cfg.RunAddress,
 		"a",
@@ -29,14 +33,14 @@ func New() *Config {
 		"адрес подключения к базе данных, дефолтного значения нет",
 	)
 	flag.StringVar(
-		&cfg.AccrualSystemAddres,
+		&cfg.AccrualSystemAddress,
 		"r",
-		"",
+		"http://localhost:8181",
 		"адрес системы расчёта начислений",
 	)
 	flag.Parse()
 
-	//переопределяем значения конфига переменными ENV, eсли они определены в ОС
+	// переопределяем значения конфига переменными ENV, eсли они определены в ОС
 	if err := env.Parse(&cfg); err != nil {
 		log.Printf("err while parsing env-values: %v\n", err)
 	}

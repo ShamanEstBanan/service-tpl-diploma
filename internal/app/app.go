@@ -3,21 +3,25 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	"log"
-	"net"
-	"net/http"
-	"os/signal"
+
 	"service-tpl-diploma/internal/app/migrate"
 	"service-tpl-diploma/internal/config"
+	"service-tpl-diploma/internal/domain"
 	"service-tpl-diploma/internal/handler"
 	"service-tpl-diploma/internal/router"
 	"service-tpl-diploma/internal/storage"
+	"service-tpl-diploma/internal/usecase"
+	"service-tpl-diploma/internal/workers"
 	"service-tpl-diploma/pkg/logger"
-	"syscall"
-	"time"
 )
 
 const (
@@ -30,16 +34,13 @@ type App struct {
 }
 
 // listen OS signals to gracefully shutdown server
-func listen(ctx context.Context) error {
-	srv := http.Server{
-		Addr:        ":8080",
-		Handler:     nil,
-		BaseContext: func(net.Listener) context.Context { return ctx },
-	}
+func listen(ctx context.Context, server *http.Server) error {
+	srv := server
 
 	eg, ctx := errgroup.WithContext(ctx)
-	eg.Go(srv.ListenAndServe)
 
+	eg.Go(srv.ListenAndServe)
+	log.Println("server started 1", zap.String("addr:", server.Addr))
 	eg.Go(func() error {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -59,19 +60,18 @@ func listen(ctx context.Context) error {
 func New() (*App, error) {
 	cfg := config.New()
 
-	lg, err := logger.New(false)
+	lg, err := logger.New(cfg.Debug)
 	if err != nil {
 		return nil, err
 	}
 
-	//Init migrations
+	// Init migrations
 	if err := migrate.Run(cfg.PostgresDSN, migrate.WithPath(migrationsPath)); err != nil {
-		log.Fatalf("failed executing migrate DB: %v\n", err)
+		log.Fatalf("failed executing migrate DB: %v\n", err) //nolint: revive
 	}
-
 	ctx := context.Background()
 
-	//initiate storage
+	// init storage
 	pool, err := pgxpool.New(ctx, cfg.PostgresDSN)
 	if err != nil {
 		lg.Error(err.Error())
@@ -79,13 +79,35 @@ func New() (*App, error) {
 	}
 	st := storage.New(pool, lg)
 
-	h := handler.New(lg, st)
+	// workerpool
+	jobsCh := make(chan domain.Job, cfg.JobCount)
+	go func() {
+		ctx, cancel := signal.NotifyContext(
+			context.Background(),
+			syscall.SIGINT,
+			syscall.SIGTERM,
+		)
+		defer cancel()
+		err = workers.RunPool(ctx, cfg.Concurrency, jobsCh)
+		if err != nil {
+			lg.Error(" ERROR worker-pool:", zap.Error(err))
+		}
+	}()
+
+	// init worker updater
+	w := workers.NewStatusUpdater(st, jobsCh, lg, cfg.AccrualSystemAddress)
+	w.Start()
+
+	// init service
+	usecases := usecase.New(lg, st)
+	// init server
+	h := handler.New(lg, usecases)
 	r := router.New(h)
 	server := &http.Server{
-		Addr:    cfg.RunAddress,
-		Handler: r,
+		Addr:              cfg.RunAddress,
+		Handler:           r,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
-
 	return &App{
 		logger:     lg,
 		HTTPServer: server,
@@ -94,7 +116,6 @@ func New() (*App, error) {
 
 // Run starts our server
 func (app *App) Run() error {
-
 	// gracefully shutdown
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -102,12 +123,13 @@ func (app *App) Run() error {
 		syscall.SIGTERM,
 	)
 	defer cancel()
-
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
-		return listen(ctx)
+		return listen(ctx, app.HTTPServer)
 	})
-
-	app.logger.Info("server started", zap.String("addr", app.HTTPServer.Addr))
-	return app.HTTPServer.ListenAndServe()
+	err := eg.Wait()
+	if err != nil {
+		return err
+	}
+	return nil
 }

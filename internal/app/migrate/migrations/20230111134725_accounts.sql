@@ -5,7 +5,7 @@
 create table if not exists accounts
 (
     id         varchar(100) not null,
-    balance    numeric not null,
+    balance    numeric not null default 0,
     updated_at timestamp    not null default now(),
     primary key (id),
     unique (id)
